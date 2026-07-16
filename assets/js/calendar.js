@@ -58,7 +58,7 @@ async function fetchJSON(url) {
 async function postJSON(url, data) {
     const res = await fetch(url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
         body: JSON.stringify(data)
     });
     if (!res.ok) {
@@ -71,7 +71,7 @@ async function postJSON(url, data) {
 }
 
 async function delJSON(url) {
-    const res = await fetch(url, { method: 'DELETE' });
+    const res = await fetch(url, { method: 'DELETE', headers: { 'X-Requested-With': 'XMLHttpRequest' } });
     if (!res.ok) {
         const err = await res.json();
         throw new Error(err.error || 'Delete failed');

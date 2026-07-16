@@ -12,6 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (hasPermission('doctors.create') ||
     $id = $_POST['id'] ?? '';
 
     if ($name) {
+        requireCsrfToken();
         if ($id) {
             $stmt = $db->prepare("UPDATE doctors SET name=?, specialization=?, color=?, phone=?, email=? WHERE id=?");
             $stmt->execute([$name, $specialization, $color, $phone, $email, $id]);
@@ -25,6 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (hasPermission('doctors.create') ||
 }
 
 if (isset($_GET['delete']) && hasPermission('doctors.delete')) {
+    requireCsrfToken();
     $stmt = $db->prepare("UPDATE doctors SET is_active=0 WHERE id=?");
     $stmt->execute([$_GET['delete']]);
     header('Location: doctors.php');
@@ -73,14 +75,14 @@ $doctors = $db->query("SELECT * FROM doctors WHERE is_active=1 ORDER BY name")->
                             <td><?= htmlspecialchars($d['specialization']) ?></td>
                             <td><?= htmlspecialchars($d['phone']) ?></td>
                             <td><?= htmlspecialchars($d['email']) ?></td>
-                            <td><span style="display:inline-block;width:20px;height:20px;border-radius:4px;background:<?= $d['color'] ?>;vertical-align:middle"></span></td>
+                            <td><span style="display:inline-block;width:20px;height:20px;border-radius:4px;background:<?= htmlspecialchars($d['color']) ?>;vertical-align:middle"></span></td>
                             <?php if (hasPermission('doctors.edit') || hasPermission('doctors.delete')): ?>
                             <td class="actions">
                                 <?php if (hasPermission('doctors.edit')): ?>
-                                <button class="btn btn-sm" onclick="showModal(<?= $d['id'] ?>, '<?= htmlspecialchars(addslashes($d['name'])) ?>', '<?= htmlspecialchars(addslashes($d['specialization'])) ?>', '<?= $d['color'] ?>', '<?= htmlspecialchars(addslashes($d['phone'])) ?>', '<?= htmlspecialchars(addslashes($d['email'])) ?>')">Edit</button>
+                                <button class="btn btn-sm" onclick="showModal(<?= $d['id'] ?>, '<?= htmlspecialchars(addslashes($d['name'])) ?>', '<?= htmlspecialchars(addslashes($d['specialization'])) ?>', '<?= htmlspecialchars(addslashes($d['color'])) ?>', '<?= htmlspecialchars(addslashes($d['phone'])) ?>', '<?= htmlspecialchars(addslashes($d['email'])) ?>')">Edit</button>
                                 <?php endif; ?>
                                 <?php if (hasPermission('doctors.delete')): ?>
-                                <a href="?delete=<?= $d['id'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('Delete this doctor?')">Delete</a>
+                                <a href="?delete=<?= $d['id'] ?>&_csrf=<?= getCsrfToken() ?>" class="btn btn-sm btn-danger" onclick="return confirm('Delete this doctor?')">Delete</a>
                                 <?php endif; ?>
                             </td>
                             <?php endif; ?>
@@ -101,6 +103,7 @@ $doctors = $db->query("SELECT * FROM doctors WHERE is_active=1 ORDER BY name")->
             </div>
             <div class="modal-body">
                 <form method="POST">
+                    <?php csrfInput(); ?>
                     <input type="hidden" name="id" id="doctor-id">
                     <div class="form-group">
                         <label>Name</label>

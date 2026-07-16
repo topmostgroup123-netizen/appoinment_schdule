@@ -23,6 +23,12 @@ $permGroupLabels = [
 ];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!hasPermission('users.create') && !hasPermission('users.edit')) {
+        http_response_code(403);
+        echo 'Forbidden';
+        exit;
+    }
+    requireCsrfToken();
     $username = $_POST['username'] ?? '';
     $password = $_POST['password'] ?? '';
     $full_name = $_POST['full_name'] ?? '';
@@ -51,6 +57,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 if (isset($_GET['delete'])) {
+    if (!hasPermission('users.delete')) { http_response_code(403); echo 'Forbidden'; exit; }
+    requireCsrfToken();
     if ($_GET['delete'] == $_SESSION['user_id']) {
         $error = 'Cannot delete yourself';
     } else {
@@ -115,7 +123,7 @@ $error = $error ?? '';
                             <td class="actions">
                                 <button class="btn btn-sm" onclick="showModal(<?= $u['id'] ?>, '<?= htmlspecialchars(addslashes($u['username'])) ?>', '', '<?= htmlspecialchars(addslashes($u['full_name'])) ?>', '<?= $u['role'] ?>', '<?= htmlspecialchars(addslashes($u['permissions'] ?? '[]')) ?>')">Edit</button>
                                 <?php if ($u['id'] != $_SESSION['user_id']): ?>
-                                <a href="?delete=<?= $u['id'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('Delete this user?')">Delete</a>
+                                <a href="?delete=<?= $u['id'] ?>&_csrf=<?= getCsrfToken() ?>" class="btn btn-sm btn-danger" onclick="return confirm('Delete this user?')">Delete</a>
                                 <?php endif; ?>
                             </td>
                         </tr>
@@ -134,6 +142,7 @@ $error = $error ?? '';
             </div>
             <div class="modal-body">
                 <form method="POST">
+                    <?php csrfInput(); ?>
                     <input type="hidden" name="id" id="user-id">
                     <div class="form-group">
                         <label>Username</label>

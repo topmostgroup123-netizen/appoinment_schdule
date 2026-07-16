@@ -1,6 +1,11 @@
 <?php
 require_once __DIR__ . '/config.php';
 
+// Only allow initialization via CLI or by admins
+if (php_sapi_name() !== 'cli') {
+    requireAdmin();
+}
+
 $db = getDB();
 
 $db->exec("

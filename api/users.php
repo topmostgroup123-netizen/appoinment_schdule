@@ -15,6 +15,7 @@ if ($method === 'GET') {
 }
 
 if ($method === 'POST') {
+    requireApiCsrf();
     $data = json_decode(file_get_contents('php://input'), true);
     if (!$data) jsonError('Invalid request body');
 
@@ -45,6 +46,7 @@ if ($method === 'POST') {
 }
 
 if ($method === 'DELETE') {
+    requireApiCsrf();
     $id = $_GET['id'] ?? null;
     if (!$id) jsonError('ID required');
     if ($id == $_SESSION['user_id']) jsonError('Cannot delete yourself');

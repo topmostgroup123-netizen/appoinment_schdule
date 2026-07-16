@@ -11,6 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (hasPermission('patients.create') |
     $id = $_POST['id'] ?? '';
 
     if ($name) {
+        requireCsrfToken();
         if ($id) {
             $stmt = $db->prepare("UPDATE patients SET name=?, phone=?, email=?, notes=? WHERE id=?");
             $stmt->execute([$name, $phone, $email, $notes, $id]);
@@ -24,6 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (hasPermission('patients.create') |
 }
 
 if (isset($_GET['delete']) && hasPermission('patients.delete')) {
+    requireCsrfToken();
     $stmt = $db->prepare("DELETE FROM patients WHERE id=?");
     $stmt->execute([$_GET['delete']]);
     header('Location: patients.php');
@@ -77,7 +79,7 @@ $patients = $db->query("SELECT * FROM patients ORDER BY name")->fetchAll();
                                 <button class="btn btn-sm" onclick="showModal(<?= $p['id'] ?>, '<?= htmlspecialchars(addslashes($p['name'])) ?>', '<?= htmlspecialchars(addslashes($p['phone'])) ?>', '<?= htmlspecialchars(addslashes($p['email'])) ?>', '<?= htmlspecialchars(addslashes($p['notes'])) ?>')">Edit</button>
                                 <?php endif; ?>
                                 <?php if (hasPermission('patients.delete')): ?>
-                                <a href="?delete=<?= $p['id'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('Delete this patient?')">Delete</a>
+                                <a href="?delete=<?= $p['id'] ?>&_csrf=<?= getCsrfToken() ?>" class="btn btn-sm btn-danger" onclick="return confirm('Delete this patient?')">Delete</a>
                                 <?php endif; ?>
                             </td>
                             <?php endif; ?>
@@ -98,6 +100,7 @@ $patients = $db->query("SELECT * FROM patients ORDER BY name")->fetchAll();
             </div>
             <div class="modal-body">
                 <form method="POST">
+                    <?php csrfInput(); ?>
                     <input type="hidden" name="id" id="patient-id">
                     <div class="form-group">
                         <label>Name</label>

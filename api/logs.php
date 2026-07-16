@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/../config.php';
-requireLogin();
+requirePermission('logs.view');
 
 $db = getDB();
 

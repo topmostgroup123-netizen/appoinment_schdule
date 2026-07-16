@@ -1,4 +1,5 @@
-<div class="sidebar">
+<button class="hamburger" onclick="toggleSidebar()" aria-label="Menu">☰</button>
+<div class="sidebar" id="sidebar">
     <div class="sidebar-header">
         <h2>Clinic</h2>
         <span>Appointment Scheduler</span>
@@ -48,3 +49,14 @@
         <a href="/logout.php" class="btn btn-sm">Logout</a>
     </div>
 </div>
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+<script>
+function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('sidebar-overlay').classList.toggle('open');
+}
+function closeSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebar-overlay').classList.remove('open');
+}
+</script>

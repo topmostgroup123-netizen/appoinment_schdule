@@ -136,7 +136,7 @@ $recent = $db->query("
                             <td style="color:var(--text-secondary)"><?= $r['id'] ?></td>
                             <td><?= htmlspecialchars($r['patient_name']) ?></td>
                             <td><?= htmlspecialchars($r['doctor_name'] ?: '-') ?></td>
-                            <td><?= $r['date'] ?> <?= $r['start_time'] ?></td>
+                            <td><?= htmlspecialchars($r['date']) ?> <?= htmlspecialchars($r['start_time']) ?></td>
                             <td><span class="status-badge <?= 'status-' . $r['status'] ?>"><?= htmlspecialchars(ucfirst($r['status'])) ?></span></td>
                             <td><?= htmlspecialchars(ucfirst($r['type'])) ?></td>
                         </tr>
@@ -196,7 +196,7 @@ $recent = $db->query("
                             <td style="color:var(--text-secondary)"><?= $r['id'] ?></td>
                             <td><?= htmlspecialchars($r['patient_name']) ?></td>
                             <td><?= htmlspecialchars($r['doctor_name'] ?: '-') ?></td>
-                            <td><?= $r['date'] ?> <?= $r['start_time'] ?></td>
+                            <td><?= htmlspecialchars($r['date']) ?> <?= htmlspecialchars($r['start_time']) ?></td>
                             <td><span class="status-badge <?= 'status-' . $r['status'] ?>"><?= htmlspecialchars(ucfirst($r['status'])) ?></span></td>
                         </tr>
                         <?php endforeach; ?>

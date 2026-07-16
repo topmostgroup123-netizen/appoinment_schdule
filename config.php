@@ -1,7 +1,23 @@
 <?php
+// Session security config
+ini_set('session.use_only_cookies', 1);
+ini_set('session.use_strict_mode', 1);
+session_set_cookie_params([
+    'lifetime' => 86400,
+    'path' => '/',
+    'secure' => isset($_SERVER['HTTPS']),
+    'httponly' => true,
+    'samesite' => 'Lax'
+]);
 session_start();
 
 define('DB_PATH', __DIR__ . '/data/clinic.db');
+
+// Security headers
+header('X-Content-Type-Options: nosniff');
+header('X-Frame-Options: DENY');
+header('Referrer-Policy: strict-origin-when-cross-origin');
+header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; form-action 'self'");
 
 function getDB() {
     static $db = null;
@@ -36,7 +52,7 @@ function requireLogin() {
 function requireAdmin() {
     requireLogin();
     if (!isAdmin()) {
-        header('HTTP/1.1 403 Forbidden');
+        http_response_code(403);
         echo 'Forbidden';
         exit;
     }
@@ -51,10 +67,35 @@ function hasPermission($perm) {
 function requirePermission($perm) {
     requireLogin();
     if (!hasPermission($perm)) {
-        header('HTTP/1.1 403 Forbidden');
+        http_response_code(403);
         echo 'Forbidden';
         exit;
     }
+}
+
+// CSRF protection
+function getCsrfToken() {
+    if (empty($_SESSION['csrf_token'])) {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    }
+    return $_SESSION['csrf_token'];
+}
+
+function validateCsrfToken($token) {
+    return !empty($token)
+        && !empty($_SESSION['csrf_token'])
+        && hash_equals($_SESSION['csrf_token'], $token);
+}
+
+function requireCsrfToken() {
+    $token = $_POST['_csrf'] ?? $_GET['_csrf'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+    if (!validateCsrfToken($token)) {
+        jsonError('Invalid or missing CSRF token', 403);
+    }
+}
+
+function csrfInput() {
+    echo '<input type="hidden" name="_csrf" value="' . getCsrfToken() . '">';
 }
 
 function jsonResponse($data, $code = 200) {
@@ -79,4 +120,12 @@ function addLog($action, $entity_type, $entity_id = null, $detail = null) {
         $entity_id,
         $detail
     ]);
+}
+
+// API CSRF check for JSON endpoints (via X-Requested-With header)
+function requireApiCsrf() {
+    $header = $_SERVER['HTTP_X_REQUESTED_WITH'] ?? '';
+    if (strtolower($header) !== 'xmlhttprequest') {
+        jsonError('Invalid request origin', 403);
+    }
 }
