@@ -1,0 +1,42 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.2
+
+      - name: PHP syntax check
+        run: find . -name '*.php' -not -path './vendor/*' -exec php -l {} \;
+
+      - name: Check security headers in config.php
+        run: |
+          grep -q "Content-Security-Policy" config.php && echo "CSP found" || exit 1
+          grep -q "X-Frame-Options: DENY" config.php && echo "XFO found" || exit 1
+
+  cd:
+    if: github.ref == 'refs/heads/main'
+    needs: ci
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy via rsync
+        run: |
+          rsync -avz --delete \
+            --exclude '.git' \
+            --exclude '.github' \
+            ./ user@your-server.com:/var/www/appointment-schedule/
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
